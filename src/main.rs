@@ -55,7 +55,7 @@ async fn main() {
         draw_rectangle(0.0, 0.0, screen_width(), screen_height(), BLACK);
         gl_use_default_material();
 
-        widgets::Window::new(hash!(), vec2(10., 10.), vec2(200., 100.))
+        widgets::Window::new(hash!(), vec2(10., 10.), vec2(200., 120.))
             .label("Settings")
             .titlebar(false)
             .ui(&mut *root_ui(), |ui| {
@@ -69,8 +69,12 @@ async fn main() {
                     },
                     &mut scale,
                 );
-                ui.label(Vec2::new(0., 50.), "Press space to lock/unlock .");
-                ui.label(Vec2::new(0., 70.), format!("FPS: {}", get_fps()).as_str());
+                ui.label(
+                    Vec2::new(0., 50.),
+                    format!("c: ({:.2$} + {:.2$}i)", c_r, c_c, 4).as_str(),
+                );
+                ui.label(Vec2::new(0., 70.), "Press space to lock/unlock .");
+                ui.label(Vec2::new(0., 90.), format!("FPS: {}", get_fps()).as_str());
             });
 
         next_frame().await;

@@ -1,5 +1,6 @@
 # julia
 A simple Julia set visualisation.
+![julia screenshot](julia.jpg)
 
 ## Run
 Use `cargo run --release` to run this project
