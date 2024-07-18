@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use macroquad::ui::{hash, root_ui, widgets};
 
 #[macroquad::main("Julia Set Vis by Saman Miran")]
 async fn main() {
@@ -10,25 +11,67 @@ async fn main() {
         MaterialParams {
             uniforms: vec![
                 ("resolution".to_string(), UniformType::Float2),
-                ("mouse".to_string(), UniformType::Float2),
+                ("c".to_string(), UniformType::Float2),
+                ("iterations".to_string(), UniformType::Int1),
+                ("scale".to_string(), UniformType::Float1),
             ],
             ..MaterialParams::default()
         },
     )
     .unwrap();
 
+    let mut c_locked = false;
+    let mut c_r: f32 = 0.0;
+    let mut c_c: f32 = 0.0;
+    let mut scale: f32 = 3.0;
+    let mut iterations: i32 = 512;
+    let mut iterations_input = iterations.to_string();
+
     loop {
         clear_background(BLACK);
 
+        if iterations_input.trim().len() > 0 {
+            iterations = match iterations_input.trim().parse::<i32>() {
+                Ok(num) => clamp(num, 0, 16384),
+                Err(_) => iterations,
+            };
+            iterations_input = iterations.to_string();
+        }
+        if is_key_pressed(KeyCode::Space) {
+            c_locked = !c_locked;
+        }
+
+        if !c_locked {
+            let mouse = mouse_position();
+            c_r = mouse.0 / screen_width() * 2.0 - 1.0;
+            c_c = mouse.1 / screen_height() * 2.0 - 1.0;
+        }
+        material.set_uniform("c", (c_r, c_c));
         material.set_uniform("resolution", vec2(screen_width(), screen_height()));
-        let mouse = mouse_position();
-        let x = (mouse.0 / screen_width()) * 2.0 - 1.0;
-        let y = mouse.1 / screen_height() * 2.0 - 1.0;
-        material.set_uniform("mouse", (x, y));
+        material.set_uniform("iterations", iterations);
+        material.set_uniform("scale", scale);
 
         gl_use_material(&material);
         draw_rectangle(0.0, 0.0, screen_width(), screen_height(), BLACK);
         gl_use_default_material();
+
+        widgets::Window::new(hash!(), vec2(10., 10.), vec2(200., 100.))
+            .label("Settings")
+            .titlebar(false)
+            .ui(&mut *root_ui(), |ui| {
+                ui.input_text(hash!(), "Iterations", &mut iterations_input);
+                ui.slider(
+                    hash!(),
+                    "scale",
+                    std::ops::Range::<f32> {
+                        start: 0.01,
+                        end: 4.0,
+                    },
+                    &mut scale,
+                );
+                ui.label(Vec2::new(0., 50.), "Press space to lock/unlock .");
+                ui.label(Vec2::new(0., 70.), format!("FPS: {}", get_fps()).as_str());
+            });
 
         next_frame().await;
         // println!("FPS: {}", get_fps());
@@ -38,21 +81,20 @@ async fn main() {
 const CRT_FRAGMENT_SHADER: &'static str = r#"#version 330
 precision highp float;
 
-varying vec4 color;
 varying vec2 uv;
 
 uniform vec2 resolution;
-uniform vec2 mouse;
+uniform vec2 c;
+uniform int iterations;
+uniform float scale;
 
-const int iterations = 1024;
-const float epsilon = 0.01;
-const float scale = 3.0;
+const float epsilon = 0.0001;
 
 vec4 julia(vec2 pos) {
     float aspect_ratio = resolution.x / resolution.y;
 
-    float c_r = mouse.x;
-    float c_c = mouse.y;
+    float c_r = c.x;
+    float c_c = c.y;
 
     float z_r = pos.y * scale - scale / 2.0;
     float z_c = pos.x * aspect_ratio * scale - (scale * aspect_ratio) / 2.0;
@@ -73,6 +115,8 @@ vec4 julia(vec2 pos) {
             float g = pow(1.0 / float(i), 0.4);
             float b = pow(1.0 / float(i), 0.8);
             return vec4(r, g, b, 1.0);
+        } else if  (d < epsilon) {
+            return vec4(1.0, 1.0, 1.0, 1.0);
         }
     }
 
@@ -90,17 +134,14 @@ precision highp float;
 
 attribute vec3 position;
 attribute vec2 texcoord;
-attribute vec4 color0;
 
 varying lowp vec2 uv;
-varying lowp vec4 color;
 
 uniform mat4 Model;
 uniform mat4 Projection;
 
 void main() {
     gl_Position = Projection * Model * vec4(position, 1);
-    color = color0 / 255.0;
     uv = texcoord;
 }
 ";
