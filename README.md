@@ -4,7 +4,11 @@ A simple Julia set visualisation.
 ![julia screenshot](julia.png)
 
 ## Run
-Use `cargo run --release` to run this project
+Use `cargo run --release` to run this project.
+
+You may potentially need to install packages for the macroquad dependency to run. If you run into dependency issues look here: [macroquad](https://github.com/not-fl3/macroquad)
+
+Tested on Windows and Linux (Manjaro).
 
 ## Julia Sets
 Julia Sets describe the borders between areas of convergence for a given function.
