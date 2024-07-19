@@ -6,7 +6,7 @@ A simple Julia set visualisation.
 ## Run
 Use `cargo run --release` to run this project.
 
-You may potentially need to install packages for the macroquad dependency to run. If you run into dependency issues look here: [macroquad](https://github.com/not-fl3/macroquad)
+You may potentially need to install packages for the macroquad dependency to run. If you run into dependency issues, look here: [macroquad](https://github.com/not-fl3/macroquad)
 
 Tested on Windows and Linux (Manjaro).
 
