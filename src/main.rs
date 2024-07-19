@@ -85,7 +85,9 @@ async fn main() {
 const CRT_FRAGMENT_SHADER: &'static str = r#"#version 330
 precision highp float;
 
-varying vec2 uv;
+in highp vec2 uv;
+
+out vec4 outColor;
 
 uniform vec2 resolution;
 uniform vec2 c;
@@ -128,18 +130,17 @@ vec4 julia(vec2 pos) {
 }
 
 void main() {
-    vec2 pos = uv;
-    gl_FragColor = julia(pos);
+    outColor = julia(uv);
 }
 "#;
 
 const CRT_VERTEX_SHADER: &'static str = "#version 330
 precision highp float;
 
-attribute vec3 position;
-attribute vec2 texcoord;
+in vec3 position;
+in vec2 texcoord;
 
-varying lowp vec2 uv;
+out highp vec2 uv;
 
 uniform mat4 Model;
 uniform mat4 Projection;
